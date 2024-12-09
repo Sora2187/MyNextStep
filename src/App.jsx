@@ -1,11 +1,14 @@
-import "./App.css";
-import Login from "./pages/Login";
+import Login from "./Login";
+import Logout from "./Logout";
+import SignUp from "./SignUp";
 
 function App() {
   return (
-    <>
-      <Login></Login>
-    </>
+    <div>
+      <Login />
+      <SignUp />
+      <Logout />
+    </div>
   );
 }
 
