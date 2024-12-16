@@ -1,13 +1,15 @@
 import React from "react";
 import { db } from "../firebase/firebase";
-import { deleteDoc, doc, updateDoc } from "firebase/firestore"; // Import updateDoc
+import { deleteDoc, doc, updateDoc } from "firebase/firestore";
 
 function GoalList({ goals, refreshGoals }) {
+  const dailyGoals = goals.filter((goal) => goal.type === "daily");
+  const regularGoals = goals.filter((goal) => goal.type === "regular");
+
   const handleDelete = async (id) => {
     try {
       await deleteDoc(doc(db, "goals", id));
-      alert("Goal deleted!");
-      refreshGoals();
+      refreshGoals(); // Refresh the goal list after deletion
     } catch (error) {
       alert("Error deleting goal: " + error.message);
     }
@@ -16,28 +18,46 @@ function GoalList({ goals, refreshGoals }) {
   const handleComplete = async (id, completed) => {
     try {
       const goalRef = doc(db, "goals", id);
-      await updateDoc(goalRef, { completed: !completed }); // Toggle completed status
+      await updateDoc(goalRef, { completed: !completed }); // Toggle completion status
       refreshGoals();
     } catch (error) {
-      alert("Error marking goal as completed: " + error.message);
+      alert("Error updating goal: " + error.message);
     }
   };
 
   return (
     <div>
       <h3>Your Goals</h3>
-      {goals.length === 0 ? (
-        <p>No goals added yet.</p>
+
+      <h4>Regular Goals</h4>
+      {regularGoals.length === 0 ? (
+        <p>No regular goals added yet.</p>
       ) : (
         <ul>
-          {goals.map((goal) => (
+          {regularGoals.map((goal) => (
             <li key={goal.id}>
               {goal.goal}
               <button onClick={() => handleDelete(goal.id)}>Delete</button>
               <button onClick={() => handleComplete(goal.id, goal.completed)}>
                 {goal.completed ? "Unmark Completed" : "Mark as Completed"}
-              </button>{" "}
-              {/* Mark as completed button */}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <h4>Daily Goals</h4>
+      {dailyGoals.length === 0 ? (
+        <p>No daily goals added yet.</p>
+      ) : (
+        <ul>
+          {dailyGoals.map((goal) => (
+            <li key={goal.id}>
+              {goal.goal}
+              <button onClick={() => handleDelete(goal.id)}>Delete</button>
+              <button onClick={() => handleComplete(goal.id, goal.completed)}>
+                {goal.completed ? "Unmark Completed" : "Mark as Completed"}
+              </button>
             </li>
           ))}
         </ul>

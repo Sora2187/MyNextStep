@@ -28,8 +28,8 @@ function QuoteCarousel() {
         <p>{quotes[currentQuoteIndex]}</p>
       </div>
       <div className="carousel-controls">
-        <button onClick={prevQuote}>Previous</button>
-        <button onClick={nextQuote}>Next</button>
+        <button onClick={prevQuote}>Previous </button>
+        <button onClick={nextQuote}> Next</button>
       </div>
     </div>
   );
