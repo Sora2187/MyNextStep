@@ -1,19 +1,21 @@
-import { useState } from "react";
-import { auth } from "./firebase";
+import React, { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
-const Login = () => {
+import { auth } from "../firebase/firebase";
+import { useNavigate } from "react-router-dom";
+
+function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      // Sign in with user creds
       await signInWithEmailAndPassword(auth, email, password);
-      alert("Logged in successfully!!!");
-    } catch (err) {
-      setError(err.message);
+      alert("Login successful");
+      navigate("/dashboard");
+    } catch (error) {
+      alert("Error logging in: " + error.message);
     }
   };
 
@@ -23,21 +25,25 @@ const Login = () => {
       <form onSubmit={handleLogin}>
         <input
           type="email"
-          placeholder="Enter your email"
+          placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          required
         />
         <input
           type="password"
-          placeholder="Enter your password"
+          placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          required
         />
-        {error && <p>{error}</p>} {/* Show error if any */}
-        <button type="submit">Log In</button>
+        <button type="submit">Login</button>
       </form>
+      <p>
+        Do not have an account? <a href="/signup">Sign up</a>
+      </p>
     </div>
   );
-};
+}
 
 export default Login;
