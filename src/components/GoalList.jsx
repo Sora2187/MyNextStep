@@ -1,67 +1,48 @@
 import React from "react";
-import { db } from "../firebase/firebase";
-import { deleteDoc, doc, updateDoc } from "firebase/firestore";
 
-function GoalList({ goals, refreshGoals }) {
+function GoalList({ goals }) {
+  const regularGoals = goals.filter((goal) => goal.type === "goal");
   const dailyGoals = goals.filter((goal) => goal.type === "daily");
-  const regularGoals = goals.filter((goal) => goal.type === "regular");
 
-  const handleDelete = async (id) => {
-    try {
-      await deleteDoc(doc(db, "goals", id));
-      refreshGoals(); // Refresh the goal list after deletion
-    } catch (error) {
-      alert("Error deleting goal: " + error.message);
-    }
-  };
-
-  const handleComplete = async (id, completed) => {
-    try {
-      const goalRef = doc(db, "goals", id);
-      await updateDoc(goalRef, { completed: !completed }); // Toggle completion status
-      refreshGoals();
-    } catch (error) {
-      alert("Error updating goal: " + error.message);
-    }
-  };
+  const formatDate = (date) =>
+    date ? new Date(date).toLocaleDateString() : "N/A";
 
   return (
     <div>
-      <h3>Your Goals</h3>
+      {/* Regular Goals */}
+      <h3 className="text-2xl font-semibold text-gray-800 mb-2">
+        Regular Goals
+      </h3>
+      <ul className="space-y-4 mb-6">
+        {regularGoals.map((goal) => (
+          <li key={goal.id} className="p-4 bg-gray-100 rounded-lg shadow-md">
+            <h4 className="text-xl font-bold">{goal.title}</h4>
+            <p className="text-gray-600">
+              {goal.description || "No description"}
+            </p>
+            <p className="text-sm text-gray-500">
+              Deadline: {formatDate(goal.deadline)}
+            </p>
+            <div className="w-full bg-gray-300 rounded-full h-2.5 mt-2">
+              <div
+                className="bg-blue-500 h-2.5 rounded-full"
+                style={{ width: `${goal.progress || 0}%` }}
+              ></div>
+            </div>
+            <p className="text-sm mt-1">{goal.progress || 0}% completed</p>
+          </li>
+        ))}
+      </ul>
 
-      <h4>Regular Goals</h4>
-      {regularGoals.length === 0 ? (
-        <p>No regular goals added yet.</p>
-      ) : (
-        <ul>
-          {regularGoals.map((goal) => (
-            <li key={goal.id}>
-              {goal.goal}
-              <button onClick={() => handleDelete(goal.id)}>Delete</button>
-              <button onClick={() => handleComplete(goal.id, goal.completed)}>
-                {goal.completed ? "Unmark Completed" : "Mark as Completed"}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <h4>Daily Goals</h4>
-      {dailyGoals.length === 0 ? (
-        <p>No daily goals added yet.</p>
-      ) : (
-        <ul>
-          {dailyGoals.map((goal) => (
-            <li key={goal.id}>
-              {goal.goal}
-              <button onClick={() => handleDelete(goal.id)}>Delete</button>
-              <button onClick={() => handleComplete(goal.id, goal.completed)}>
-                {goal.completed ? "Unmark Completed" : "Mark as Completed"}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+      {/* Daily Goals */}
+      <h3 className="text-2xl font-semibold text-gray-800 mb-2">Daily Goals</h3>
+      <ul className="space-y-4">
+        {dailyGoals.map((goal) => (
+          <li key={goal.id} className="p-4 bg-yellow-100 rounded-lg shadow-md">
+            <h4 className="text-xl font-bold">{goal.title}</h4>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
