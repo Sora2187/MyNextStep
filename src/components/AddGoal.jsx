@@ -3,132 +3,105 @@ import { db, auth } from "../firebase/firebase";
 import { collection, addDoc } from "firebase/firestore";
 
 function AddGoal({ refreshGoals }) {
-  const [goalType, setGoalType] = useState("goal"); // Default to regular goal
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [deadline, setDeadline] = useState("");
-  const [progress, setProgress] = useState(0);
+  const [type, setType] = useState("goal");
+  const [deadline, setDeadline] = useState(""); // For goal deadlines
+  const [reminder, setReminder] = useState(""); // New: Reminder date & time
 
-  const handleAddGoal = async (e) => {
-    e.preventDefault();
-    const user = auth.currentUser;
-
-    if (!user) {
-      alert("You must be logged in to add a goal.");
-      return;
-    }
-
-    if (!title) {
-      alert("Title is required!");
+  const handleAddGoal = async () => {
+    if (!title.trim()) {
+      alert("Title is required.");
       return;
     }
 
     try {
-      const goalRef = collection(db, "goals");
-      const goalData = {
-        title,
-        userId: user.uid,
-        createdAt: new Date(),
-        type: goalType,
-      };
-
-      // Add extra fields for regular goals
-      if (goalType === "goal") {
-        goalData.description = description;
-        goalData.deadline = deadline;
-        goalData.progress = Number(progress);
+      const user = auth.currentUser;
+      if (!user) {
+        alert("You must be logged in to add goals.");
+        return;
       }
 
-      await addDoc(goalRef, goalData);
+      // For daily goals, set deadline to today's midnight
+      let adjustedDeadline = deadline;
+      if (type === "daily") {
+        adjustedDeadline = new Date().setHours(23, 59, 59, 999); // Set to midnight today
+      }
 
-      // Reset the form
+      await addDoc(collection(db, "goals"), {
+        userId: user.uid,
+        title,
+        description,
+        type,
+        deadline: adjustedDeadline,
+        reminder, // Save reminder timestamp
+        progress: 0,
+        completed: false, // Initially not completed
+        createdAt: new Date(),
+      });
+
+      alert("Goal added successfully!");
+      refreshGoals();
       setTitle("");
       setDescription("");
       setDeadline("");
-      setProgress(0);
-      setGoalType("goal");
-
-      refreshGoals();
+      setReminder("");
     } catch (error) {
-      alert("Error adding goal: " + error.message);
+      console.error("Error adding goal: ", error);
+      alert("Failed to add goal.");
     }
   };
 
   return (
-    <form
-      onSubmit={handleAddGoal}
-      className="space-y-4 bg-white p-6 rounded-lg shadow-md"
-    >
-      <h3 className="text-2xl font-semibold text-gray-800">Add New Goal</h3>
-
-      {/* Goal Type Selector */}
-      <div className="flex items-center gap-4">
-        <label className="text-gray-700 font-medium">
-          <input
-            type="radio"
-            value="goal"
-            checked={goalType === "goal"}
-            onChange={() => setGoalType("goal")}
-            className="mr-2"
-          />
-          Regular Goal
-        </label>
-        <label className="text-gray-700 font-medium">
-          <input
-            type="radio"
-            value="daily"
-            checked={goalType === "daily"}
-            onChange={() => setGoalType("daily")}
-            className="mr-2"
-          />
-          Daily Goal
-        </label>
-      </div>
-
-      {/* Common Field */}
+    <div className="p-5 bg-white rounded-lg shadow-lg">
+      <h3 className="text-2xl font-semibold mb-4">Add a New Goal</h3>
       <input
         type="text"
-        placeholder="Goal Title"
+        placeholder="Title"
+        className="w-full p-2 mb-3 border rounded"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
       />
-
-      {/* Regular Goal Fields */}
-      {goalType === "goal" && (
+      <textarea
+        placeholder="Description"
+        className="w-full p-2 mb-3 border rounded"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+      ></textarea>
+      <label className="block mb-2">Goal Type</label>
+      <select
+        className="w-full p-2 mb-3 border rounded"
+        value={type}
+        onChange={(e) => setType(e.target.value)}
+      >
+        <option value="goal">Regular Goal</option>
+        <option value="daily">Daily Goal</option>
+      </select>
+      {type === "goal" && (
         <>
-          <textarea
-            placeholder="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-            rows="3"
-          ></textarea>
+          <label className="block mb-2">Deadline</label>
           <input
-            type="date"
+            type="datetime-local"
+            className="w-full p-2 mb-3 border rounded"
             value={deadline}
             onChange={(e) => setDeadline(e.target.value)}
-            className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
-          <input
-            type="number"
-            placeholder="Progress (0-100)"
-            value={progress}
-            onChange={(e) => setProgress(e.target.value)}
-            className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-            min="0"
-            max="100"
           />
         </>
       )}
-
+      <label className="block mb-2">Reminder Time</label>
+      <input
+        type="datetime-local"
+        className="w-full p-2 mb-3 border rounded"
+        value={reminder}
+        onChange={(e) => setReminder(e.target.value)}
+      />
       <button
-        type="submit"
-        className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition duration-300"
+        onClick={handleAddGoal}
+        className="w-full bg-blue-500 text-white p-3 rounded-md hover:bg-blue-600 transition duration-300"
       >
         Add Goal
       </button>
-    </form>
+    </div>
   );
 }
 
