@@ -1,38 +1,33 @@
 import React, { useState, useEffect } from "react";
 
-function QuoteCarousel() {
-  const [quotes, setQuotes] = useState([
-    "Believe in yourself and all that you are.",
-    "The future depends on what we do in the present.",
-    "Success is not final, failure is not fatal: It is the courage to continue that counts.",
-    "Your time is limited, so don’t waste it living someone else’s life.",
+const QuoteCarousel = () => {
+  const quotes = [
+    "Success is not the key to happiness. Happiness is the key to success.",
     "The only way to do great work is to love what you do.",
-  ]);
+    "It always seems impossible until it's done.",
+    "Believe you can and you're halfway there.",
+    "Don’t watch the clock; do what it does. Keep going.",
+  ];
 
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
 
-  const nextQuote = () => {
-    setCurrentQuoteIndex((prevIndex) => (prevIndex + 1) % quotes.length);
-  };
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setCurrentQuoteIndex((prevIndex) =>
+        prevIndex === quotes.length - 1 ? 0 : prevIndex + 1
+      );
+    }, 5000); // Change quote every 5 seconds
 
-  const prevQuote = () => {
-    setCurrentQuoteIndex(
-      (prevIndex) => (prevIndex - 1 + quotes.length) % quotes.length
-    );
-  };
+    return () => clearInterval(intervalId); // Cleanup on unmount
+  }, [quotes.length]);
 
   return (
-    <div className="quote-carousel">
-      <h4>Motivational Quotes</h4>
-      <div className="quote-container">
-        <p>{quotes[currentQuoteIndex]}</p>
-      </div>
-      <div className="carousel-controls">
-        <button onClick={prevQuote}>Previous </button>
-        <button onClick={nextQuote}> Next</button>
-      </div>
+    <div className="quote-carousel bg-gray-200 p-4 rounded-lg shadow-md">
+      <p className="text-lg font-semibold text-center">
+        {quotes[currentQuoteIndex]}
+      </p>
     </div>
   );
-}
+};
 
 export default QuoteCarousel;
